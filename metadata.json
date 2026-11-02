@@ -1,0 +1,8 @@
+{
+  "name": "Calculadora básica com interface gráfica em Python",
+  "description": "Calculadora simples em Python com interface gráfica Tkinter suportando as quatro operações matemáticas básicas, simulador interativo e código-fonte completo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
