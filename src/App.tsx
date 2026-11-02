@@ -9,13 +9,16 @@ import {
   Sparkles,
   SlidersHorizontal,
   FileCode,
-  Github
+  Github,
+  BookOpen,
+  FileText
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { TkinterSimulator } from './components/TkinterSimulator';
 import { PythonCodeViewer } from './components/PythonCodeViewer';
 import { TkinterAnatomy } from './components/TkinterAnatomy';
 import { HowToRunGuide } from './components/HowToRunGuide';
+import { ReadmeViewer } from './components/ReadmeViewer';
 import { CustomizerModal } from './components/CustomizerModal';
 import { TkTheme, CalculationHistoryItem, PythonConfig } from './types/calculator';
 import { PYTHON_SIMPLE_CODE } from './data/pythonCodes';
@@ -149,6 +152,18 @@ export default function App() {
                 <Play className="w-4 h-4" />
                 <span>Como Executar Localmente</span>
               </button>
+
+              <button
+                onClick={() => setActiveSection('readme')}
+                className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                  activeSection === 'readme'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>README.md (GitHub)</span>
+              </button>
             </div>
           </div>
         </div>
@@ -244,6 +259,31 @@ export default function App() {
             </div>
 
             <HowToRunGuide />
+          </div>
+        )}
+
+        {activeSection === 'readme' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                Documentação do Repositório (README.md)
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Conteúdo oficial formatado para exibição no GitHub, incluindo badges e o link de execução em nuvem.
+              </p>
+            </div>
+
+            <ReadmeViewer onDownloadReadme={() => {
+              const element = document.createElement('a');
+              const file = new Blob([
+                `# 🧮 Calculadora com Interface Gráfica em Python (Tkinter)\n\nURL de Execução no Cloud Run:\nhttps://ais-pre-3i3dlttexqpgxnnqqfl4ha-983450994454.europe-west2.run.app\n`
+              ], { type: 'text/markdown' });
+              element.href = URL.createObjectURL(file);
+              element.download = 'README.md';
+              document.body.appendChild(element);
+              element.click();
+              document.body.removeChild(element);
+            }} />
           </div>
         )}
 

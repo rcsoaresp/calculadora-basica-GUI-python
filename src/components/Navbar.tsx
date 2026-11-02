@@ -68,6 +68,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           Como Executar
         </button>
+
+        <button
+          onClick={() => setActiveSection('readme')}
+          className={`hover:text-slate-900 dark:hover:text-white transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+            activeSection === 'readme' ? 'text-blue-600 dark:text-blue-400 font-semibold' : ''
+          }`}
+        >
+          README.md
+        </button>
       </nav>
 
       {/* Zone 3: 1 primary action */}
