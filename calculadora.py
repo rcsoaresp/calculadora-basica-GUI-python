@@ -1,27 +1,77 @@
 """
 Calculadora Simples com Interface Gráfica (Tkinter)
 Suporta as 4 operações matemáticas básicas: Adição, Subtração, Multiplicação e Divisão.
+Implementa avaliação segura de expressões matemáticas via AST.
 """
 
+import ast
+import operator
 import tkinter as tk
+
+# -------------------------------------------------------------
+# MAPEAMENTO DE OPERADORES MATEMÁTICOS SUPORTADOS (AST SEGURO)
+# -------------------------------------------------------------
+OPERADORES_SUPORTADOS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
 
 # -------------------------------------------------------------
 # 1. FUNÇÕES DE CONTROLE DA CALCULADORA
 # -------------------------------------------------------------
 
+def avaliar_nodo_ast(nodo):
+    """Avalia nós da árvore sintática (AST) de forma segura, permitindo apenas aritmética."""
+    if isinstance(nodo, ast.Expression):
+        return avaliar_nodo_ast(nodo.body)
+    elif isinstance(nodo, ast.Constant):
+        if isinstance(nodo.value, (int, float)):
+            return nodo.value
+        raise ValueError("Constante não numérica não permitida.")
+    elif isinstance(nodo, ast.BinOp):
+        tipo_op = type(nodo.op)
+        if tipo_op not in OPERADORES_SUPORTADOS:
+            raise ValueError(f"Operador binário não suportado: {tipo_op}")
+        esquerda = avaliar_nodo_ast(nodo.left)
+        direita = avaliar_nodo_ast(nodo.right)
+        return OPERADORES_SUPORTADOS[tipo_op](esquerda, direita)
+    elif isinstance(nodo, ast.UnaryOp):
+        tipo_op = type(nodo.op)
+        if tipo_op not in OPERADORES_SUPORTADOS:
+            raise ValueError(f"Operador unário não suportado: {tipo_op}")
+        operando = avaliar_nodo_ast(nodo.operand)
+        return OPERADORES_SUPORTADOS[tipo_op](operando)
+    raise ValueError(f"Expressão inválida ou não permitida: {type(nodo)}")
+
+
 def inserir_caractere(caractere):
     """Insere números ou operadores no visor da calculadora."""
     texto_atual = visor_var.get()
     
-    # Se o visor estiver com '0' ou mensagem de erro, substitui pelo caractere
+    # Se o visor estiver com '0' ou mensagem de erro
     if texto_atual == "0" or "Erro" in texto_atual:
-        visor_var.set(caractere)
+        if caractere == ".":
+            visor_var.set("0.")
+        elif caractere in ['+', '-', '×', '÷']:
+            visor_var.set("0" + caractere)
+        else:
+            visor_var.set(caractere)
     else:
-        visor_var.set(texto_atual + caractere)
+        # Se o último caractere for operador e usuário inserir ponto, adiciona '0.'
+        if caractere == "." and texto_atual and texto_atual[-1] in ['+', '-', '×', '÷']:
+            visor_var.set(texto_atual + "0.")
+        else:
+            visor_var.set(texto_atual + caractere)
+
 
 def limpar_visor():
     """Limpa todo o conteúdo do visor (botão C)."""
     visor_var.set("0")
+
 
 def apagar_ultimo():
     """Apaga o último dígito inserido (botão Backspace / ⌫)."""
@@ -30,6 +80,7 @@ def apagar_ultimo():
         visor_var.set(texto_atual[:-1])
     else:
         visor_var.set("0")
+
 
 def inverter_sinal():
     """Inverte o sinal do número atual (positivo/negativo)."""
@@ -42,16 +93,17 @@ def inverter_sinal():
     except Exception:
         pass
 
+
 def calcular_resultado():
-    """Avalia a expressão matemática e exibe o resultado."""
+    """Avalia a expressão matemática de forma segura com AST e exibe o resultado."""
     expressao = visor_var.get()
     
     # Substitui os símbolos visuais pelos operadores matemáticos do Python
     expressao_python = expressao.replace('×', '*').replace('÷', '/')
     
     try:
-        # Avalia a expressão de forma segura
-        resultado = eval(expressao_python)
+        arvore = ast.parse(expressao_python, mode='eval')
+        resultado = avaliar_nodo_ast(arvore)
         
         # Formata números inteiros sem casa decimal (ex: 5.0 vira 5)
         if isinstance(resultado, float) and resultado.is_integer():
@@ -62,6 +114,7 @@ def calcular_resultado():
         visor_var.set("Erro: Divisão por 0")
     except Exception:
         visor_var.set("Erro de Sintaxe")
+
 
 # -------------------------------------------------------------
 # 2. CONFIGURAÇÃO DA JANELA PRINCIPAL
